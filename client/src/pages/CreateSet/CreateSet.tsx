@@ -1,18 +1,12 @@
 import React, { useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import { useNavigate } from "react-router-dom";
-
-type Card = {
-    name: string;
-    number: number;
-}
-
-type TCGGame = 'pokemon' | 'lorcana' | 'magic' | 'yugioh' | 'other';
+import { apiService, TCGGame, Card } from '../../services/api';
 
 const CreateSet = () => {
     const [newSet, setNewSet] = React.useState<Card[]>([]);
     const [setName, setSetName] = React.useState<string>('');
     const [selectedGame, setSelectedGame] = React.useState<TCGGame>('pokemon');
+    const [isLoading, setIsLoading] = React.useState<boolean>(false);
     const navigate = useNavigate();
 
     const tcgGames: { value: TCGGame; label: string }[] = [
@@ -87,7 +81,7 @@ const CreateSet = () => {
 
                 <div className="flex gap-4">
                     <button 
-                        onClick={() => {
+                        onClick={async () => {
                             if (!setName.trim()) {
                                 alert('Please enter a set name');
                                 return;
@@ -97,24 +91,30 @@ const CreateSet = () => {
                                 return;
                             }
                             
-                            const id = uuidv4();
-                            const storedSets = localStorage.getItem('sets');
-                            const allSets = JSON.parse(storedSets || '{}');
-                            allSets[id] = {
-                                name: setName.trim(),
-                                game: selectedGame,
-                                cards: newSet
-                            };
-                            localStorage.setItem('sets', JSON.stringify(allSets));
-                            navigate(`/sets/${id}`);
+                            setIsLoading(true);
+                            try {
+                                const createdSet = await apiService.createSet({
+                                    name: setName.trim(),
+                                    game: selectedGame,
+                                    cards: newSet
+                                });
+                                navigate(`/sets/${createdSet.id}`);
+                            } catch (error) {
+                                console.error('Error creating set:', error);
+                                alert(`Failed to create set: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                            } finally {
+                                setIsLoading(false);
+                            }
                         }}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition-colors duration-200"
+                        disabled={isLoading}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium px-6 py-2 rounded-lg transition-colors duration-200"
                     >
-                        Create Set
+                        {isLoading ? 'Creating...' : 'Create Set'}
                     </button>
                     <button 
                         onClick={() => navigate('/sets')}
-                        className="bg-gray-300 hover:bg-gray-400 text-gray-700 font-medium px-6 py-2 rounded-lg transition-colors duration-200"
+                        disabled={isLoading}
+                        className="bg-gray-300 hover:bg-gray-400 disabled:bg-gray-200 text-gray-700 font-medium px-6 py-2 rounded-lg transition-colors duration-200"
                     >
                         Cancel
                     </button>
