@@ -64,7 +64,7 @@ src/
 Create a `.env` file for environment-specific configuration:
 ```env
 # API Base URL (if different from default)
-VITE_API_BASE_URL=http://localhost:5000/api
+API_BASE_URL=http://localhost:5000/api
 ```
 
 ### Deployment

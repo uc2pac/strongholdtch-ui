@@ -91,7 +91,7 @@ npm run build
 
 **Environment Variables for Client:**
 ```env
-VITE_API_BASE_URL=https://your-api-domain.com/api
+API_BASE_URL=https://your-api-domain.com/api
 ```
 
 ### **Server Deployment (Backend Hosting)**

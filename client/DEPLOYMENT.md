@@ -2,6 +2,20 @@
 
 ## Client Deployment (Frontend to Render Static Site)
 
+### 0. Environment Setup
+
+Before deploying, set up your environment variables:
+
+1. **Copy the example file**:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Update the API URL** in `.env`:
+   ```env
+   API_BASE_URL=https://your-backend-url.onrender.com/api
+   ```
+
 ### 1. Render Configuration
 
 In your Render dashboard:
@@ -13,8 +27,14 @@ In your Render dashboard:
 
 **Environment Variables:**
 ```env
-VITE_API_BASE_URL=https://your-backend-url.onrender.com/api
+# Required: Your backend API URL
+API_BASE_URL=https://your-backend-url.onrender.com/api
+
+# Optional: Production optimizations
+NODE_ENV=production
 ```
+
+**Important**: Create a `.env` file in the client directory with your actual backend URL before deployment.
 
 ### 2. Deploy from Monorepo
 
@@ -81,7 +101,7 @@ Set these in Render dashboard:
 
 ```env
 # API endpoint (replace with your actual backend URL)
-VITE_API_BASE_URL=https://stronghold-tcg-api.onrender.com/api
+API_BASE_URL=https://stronghold-tcg-api.onrender.com/api
 
 # Optional: Enable production optimizations
 NODE_ENV=production
