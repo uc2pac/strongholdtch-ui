@@ -68,8 +68,10 @@ const CreateSet = () => {
                             const input = e.target.value;
                             try {
                                 const parsedSets = input.split('\n').map(line => line.trim()).filter(line => line).map((item => {
-                                    const [name, number] = item.split('-');
-                                    return { name: name.trim(), number: parseInt(number.trim(), 10) };
+                                    const parts = item.split('-');
+                                    const number = parseInt(parts[parts.length - 1].trim(), 10);
+                                    const name = parts.slice(0, -1).join('-').trim();
+                                    return { name, number: isNaN(number) ? 0 : number };
                                 }));
                                 setNewSet(parsedSets);
                             } catch (error) {
