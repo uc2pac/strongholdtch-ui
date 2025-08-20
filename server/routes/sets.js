@@ -54,7 +54,10 @@ router.get('/:id', async (req, res) => {
     
     // Get cards for this set
     const cardsResult = await req.db.query(
-      'SELECT * FROM cards WHERE set_id = $1 ORDER BY number ASC',
+      `SELECT * FROM cards WHERE set_id = $1 
+       ORDER BY 
+         CAST(CASE WHEN number ~ '^[0-9]+' THEN REGEXP_REPLACE(number, '[^0-9].*$', '') ELSE '0' END AS INTEGER) ASC,
+         number ASC`,
       [id]
     );
     
