@@ -4,6 +4,7 @@ import { apiService, TCGGame, Card, Set } from '../../services/api';
 
 const CreateSet = () => {
     const [newSet, setNewSet] = React.useState<Card[]>([]);
+    const [setData, setSetData] = React.useState<string>('');
     const [setName, setSetName] = React.useState<string>('');
     const [setCode, setSetCode] = React.useState<string>('');
     const [totalCards, setTotalCards] = React.useState<string>('');
@@ -36,6 +37,7 @@ const CreateSet = () => {
                     setTotalCards(set.total_cards?.toString() || '');
                     setSelectedGame(set.game);
                     setNewSet(set.cards);
+                    setSetData(set.cards.map(card => `${card.name} - ${card.number}`).join('\n'));
                 } catch (error) {
                     console.error('Error loading set:', error);
                     alert(`Failed to load set: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -127,21 +129,8 @@ const CreateSet = () => {
                     <textarea
                         className="w-full h-48 p-4 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="Enter your set data here...&#10;Example:&#10;Card Name 1 - 1&#10;Card Name 2 - 2&#10;Card Name 3 - 3"
-                        value={newSet.map(card => `${card.name} - ${card.number}`).join('\n')}
-                        onChange={(e) => {
-                            const input = e.target.value;
-                            try {
-                                const parsedSets = input.split('\n').map(line => line.trim()).filter(line => line).map((item => {
-                                    const parts = item.split('-');
-                                    const number = parseInt(parts[parts.length - 1].trim(), 10);
-                                    const name = parts.slice(0, -1).join('-').trim();
-                                    return { name, number: isNaN(number) ? 0 : number };
-                                }));
-                                setNewSet(parsedSets);
-                            } catch (error) {
-                                console.error('Invalid input format', error);
-                            }
-                        }}
+                        value={setData}
+                        onChange={(e) => setSetData(e.target.value)}
                     />
                 </div>
 
@@ -152,26 +141,42 @@ const CreateSet = () => {
                                 alert('Please enter a set name');
                                 return;
                             }
-                            if (newSet.length === 0) {
+                            
+                            // Parse the set data text into cards
+                            let parsedCards: Card[] = [];
+                            try {
+                                parsedCards = setData.split('\n').map(line => line.trim()).filter(line => line).map((item => {
+                                    const parts = item.split('-');
+                                    const number = parseInt(parts[parts.length - 1].trim(), 10);
+                                    const name = parts.slice(0, -1).join('-').trim();
+                                    return { name, number: isNaN(number) ? 0 : number };
+                                }));
+                            } catch (error) {
+                                console.error('Invalid input format', error);
+                                alert('Invalid card format. Please use the format: Card Name - Number');
+                                return;
+                            }
+                            
+                            if (parsedCards.length === 0) {
                                 alert('Please enter at least one card');
                                 return;
                             }
                             
                             setIsLoading(true);
                             try {
-                                const setData = {
+                                const setDataPayload = {
                                     name: setName.trim(),
                                     game: selectedGame,
                                     code: setCode.trim() || undefined,
                                     totalCards: totalCards ? parseInt(totalCards) : undefined,
-                                    cards: newSet
+                                    cards: parsedCards
                                 };
 
                                 let result;
                                 if (isEditMode && editId) {
-                                    result = await apiService.updateSet(editId, setData);
+                                    result = await apiService.updateSet(editId, setDataPayload);
                                 } else {
-                                    result = await apiService.createSet(setData);
+                                    result = await apiService.createSet(setDataPayload);
                                 }
                                 
                                 navigate(`/sets/${result.id}`);
@@ -196,18 +201,18 @@ const CreateSet = () => {
                     </button>
                 </div>
 
-                {newSet.length > 0 && setName.trim() && (
+                {setData.trim() && setName.trim() && (
                     <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                         <h3 className="text-lg font-medium text-gray-900 mb-2">
                             Preview: {setName} 
                             {setCode && ` (${setCode})`} 
-                            ({tcgGames.find(g => g.value === selectedGame)?.label}) - {newSet.length} cards
+                            ({tcgGames.find(g => g.value === selectedGame)?.label}) - {setData.split('\n').filter(line => line.trim()).length} cards
                             {totalCards && ` / ${totalCards} total`}
                         </h3>
                         <div className="space-y-1 max-h-32 overflow-y-auto">
-                            {newSet.map((card, index) => (
+                            {setData.split('\n').filter(line => line.trim()).map((line, index) => (
                                 <div key={index} className="text-sm text-gray-600">
-                                    {card.name} - {card.number}
+                                    {line.trim()}
                                 </div>
                             ))}
                         </div>

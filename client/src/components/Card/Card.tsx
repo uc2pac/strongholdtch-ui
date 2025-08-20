@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card as CardType } from '../../services/api';
 import { CardBackContent } from '../CardBack/CardBack';
 import IconButton from '../IconButton';
@@ -6,13 +7,15 @@ import DropdownMenu, { DropdownMenuItem } from '../DropdownMenu';
 
 interface CardProps {
   card: CardType;
+  setId: string;
   setName: string;
   totalCards: number;
   onDelete: (cardId: string) => void;
 }
 
-const Card: React.FC<CardProps> = ({ card, setName, totalCards, onDelete }) => {
+const Card: React.FC<CardProps> = ({ card, setId, setName, totalCards, onDelete }) => {
   const [isFlipped, setIsFlipped] = useState(false);
+  const navigate = useNavigate();
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -21,8 +24,7 @@ const Card: React.FC<CardProps> = ({ card, setName, totalCards, onDelete }) => {
 
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // TODO: Implement edit logic later
-    console.log('Edit card:', card.id);
+    navigate(`/sets/${setId}/cards/${card.id}/edit`);
   };
 
   const handleCardClick = () => {

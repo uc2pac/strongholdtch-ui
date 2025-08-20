@@ -3,6 +3,7 @@ import Header from './components/Header';
 import Sets from './pages/Sets';
 import SetDetails from './pages/SetDetails';
 import CreateSet from './pages/CreateSet';
+import CardEdit from './pages/CardEdit';
 
 
 const Router = () => {
@@ -18,6 +19,7 @@ const Router = () => {
         <Route path="/sets/yugioh" element={<Sets game="yugioh" />} />
         <Route path="/sets/create" element={<CreateSet />} />
         <Route path="/sets/edit/:id" element={<CreateSet />} />
+        <Route path="/sets/:setId/cards/:cardId/edit" element={<CardEdit />} />
         <Route path="/sets/:id" element={<SetDetails />} />
       </Routes>
     </BrowserRouter>

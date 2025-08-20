@@ -176,6 +176,7 @@ const SetDetails = () => {
                     <React.Fragment key={card.id || index}>
                         <CardComponent
                             card={card}
+                            setId={set.id}
                             setName={set.name}
                             totalCards={set.cards.length}
                             onDelete={handleDeleteCard}
