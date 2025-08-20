@@ -3,7 +3,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000
 export type Card = {
   id?: string;
   name: string;
-  number: number;
+  number: string;
   set_id?: string;
   created_at?: string;
 };

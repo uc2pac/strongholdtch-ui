@@ -103,13 +103,13 @@ router.post('/', async (req, res) => {
     // Insert cards
     const insertedCards = [];
     for (const card of cards) {
-      if (!card.name || card.number === undefined) {
+      if (!card.name || card.number === undefined || card.number === '') {
         throw new Error('Each card must have a name and number');
       }
       
       const cardResult = await client.query(
         'INSERT INTO cards (set_id, name, number) VALUES ($1, $2, $3) RETURNING *',
-        [newSet.id, card.name.trim(), parseInt(card.number)]
+        [newSet.id, card.name.trim(), card.number.toString().trim()]
       );
       
       insertedCards.push(cardResult.rows[0]);
@@ -166,7 +166,7 @@ router.put('/:id', async (req, res) => {
     for (const card of cards) {
       const cardResult = await client.query(
         'INSERT INTO cards (set_id, name, number) VALUES ($1, $2, $3) RETURNING *',
-        [id, card.name.trim(), parseInt(card.number)]
+        [id, card.name.trim(), card.number.toString().trim()]
       );
       
       insertedCards.push(cardResult.rows[0]);

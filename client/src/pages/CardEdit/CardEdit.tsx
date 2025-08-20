@@ -34,7 +34,7 @@ const CardEdit = () => {
 
         setCard(foundCard);
         setCardName(foundCard.name);
-        setCardNumber(foundCard.number.toString());
+        setCardNumber(foundCard.number);
       } catch (error) {
         console.error('Error loading card:', error);
         setError(error instanceof Error ? error.message : 'Failed to load card');
@@ -54,9 +54,8 @@ const CardEdit = () => {
       return;
     }
 
-    const numberValue = parseInt(cardNumber);
-    if (isNaN(numberValue) || numberValue <= 0) {
-      alert('Please enter a valid card number');
+    if (!cardNumber.trim()) {
+      alert('Please enter a card number');
       return;
     }
 
@@ -70,7 +69,7 @@ const CardEdit = () => {
       // Update the card in the cards array
       const updatedCards = currentSet.cards.map(c => 
         c.id === cardId 
-          ? { ...c, name: cardName.trim(), number: numberValue }
+          ? { ...c, name: cardName.trim(), number: cardNumber.trim() }
           : c
       );
 
@@ -166,7 +165,7 @@ const CardEdit = () => {
             Card Number
           </label>
           <input
-            type="number"
+            type="string"
             value={cardNumber}
             onChange={(e) => setCardNumber(e.target.value)}
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"

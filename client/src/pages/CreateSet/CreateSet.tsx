@@ -147,9 +147,9 @@ const CreateSet = () => {
                             try {
                                 parsedCards = setData.split('\n').map(line => line.trim()).filter(line => line).map((item => {
                                     const parts = item.split('-');
-                                    const number = parseInt(parts[parts.length - 1].trim(), 10);
+                                    const number = parts[parts.length - 1].trim();
                                     const name = parts.slice(0, -1).join('-').trim();
-                                    return { name, number: isNaN(number) ? 0 : number };
+                                    return { name, number };
                                 }));
                             } catch (error) {
                                 console.error('Invalid input format', error);

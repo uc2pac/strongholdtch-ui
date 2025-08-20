@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS cards (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     set_id UUID REFERENCES sets(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
-    number INTEGER NOT NULL,
+    number VARCHAR(20) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(set_id, number)
 );
