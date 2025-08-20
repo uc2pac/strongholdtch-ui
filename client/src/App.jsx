@@ -17,6 +17,7 @@ const Router = () => {
         <Route path="/sets/magic" element={<Sets game="magic" />} />
         <Route path="/sets/yugioh" element={<Sets game="yugioh" />} />
         <Route path="/sets/create" element={<CreateSet />} />
+        <Route path="/sets/edit/:id" element={<CreateSet />} />
         <Route path="/sets/:id" element={<SetDetails />} />
       </Routes>
     </BrowserRouter>

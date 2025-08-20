@@ -1,6 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Card as CardType } from '../../services/api';
 import { CardBackContent } from '../CardBack/CardBack';
+import IconButton from '../IconButton';
+import DropdownMenu, { DropdownMenuItem } from '../DropdownMenu';
 
 interface CardProps {
   card: CardType;
@@ -10,50 +12,35 @@ interface CardProps {
 }
 
 const Card: React.FC<CardProps> = ({ card, setName, totalCards, onDelete }) => {
-  const [showMenu, setShowMenu] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setShowMenu(false);
-      }
-    };
-
-    if (showMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [showMenu]);
-
-  const handleMenuClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowMenu(!showMenu);
-  };
 
   const handleDeleteClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setShowMenu(false);
     onDelete(card.id!);
   };
 
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setShowMenu(false);
     // TODO: Implement edit logic later
     console.log('Edit card:', card.id);
   };
 
   const handleCardClick = () => {
-    if (!showMenu) {
-      setIsFlipped(!isFlipped);
-    }
+    setIsFlipped(!isFlipped);
   };
+
+  const menuItems: DropdownMenuItem[] = [
+    {
+      label: 'Edit',
+      onClick: handleEditClick,
+      className: 'text-gray-700'
+    },
+    {
+      label: 'Delete',
+      onClick: handleDeleteClick,
+      className: 'text-red-600'
+    }
+  ];
 
   return (
     <div 
@@ -62,34 +49,20 @@ const Card: React.FC<CardProps> = ({ card, setName, totalCards, onDelete }) => {
       onClick={handleCardClick}
     >
       {/* Three dots menu - hidden when printing, shown on hover */}
-      <div className="absolute top-4 right-4 no-print z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200" ref={menuRef}>
-        <button
-          onClick={handleMenuClick}
-          className="p-1 rounded-full hover:bg-gray-200 transition-colors duration-200"
-          aria-label="Card actions"
-        >
-          <svg className="w-4 h-4 text-gray-600 transform rotate-90" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-          </svg>
-        </button>
-
-        {/* Dropdown menu */}
-        {showMenu && (
-          <div className="absolute top-8 right-0 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
-            <button
-              onClick={handleEditClick}
-              className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg"
-            >
-              Edit
-            </button>
-            <button
-              onClick={handleDeleteClick}
-              className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-b-lg"
-            >
-              Delete
-            </button>
-          </div>
-        )}
+      <div className="absolute top-4 right-4 no-print z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+        <DropdownMenu
+          trigger={
+            <IconButton
+              icon="three-dots"
+              size="sm"
+              onClick={() => {}} // Handled by DropdownMenu
+              className="rotate-90 hover:bg-gray-200"
+            />
+          }
+          items={menuItems}
+          position="bottom-right"
+          menuClassName="w-32"
+        />
       </div>
 
       {/* Card flip container */}

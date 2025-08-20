@@ -14,6 +14,8 @@ export type Set = {
   id: string;
   name: string;
   game: TCGGame;
+  code?: string;
+  total_cards?: number;
   cards: Card[];
   card_count?: number;
   created_at: string;
@@ -57,14 +59,14 @@ class ApiService {
     return this.request<Set>(`/sets/${id}`);
   }
 
-  async createSet(data: { name: string; game: TCGGame; cards: Card[] }): Promise<Set> {
+  async createSet(data: { name: string; game: TCGGame; code?: string; totalCards?: number; cards: Card[] }): Promise<Set> {
     return this.request<Set>('/sets', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async updateSet(id: string, data: { name: string; game: TCGGame; cards: Card[] }): Promise<Set> {
+  async updateSet(id: string, data: { name: string; game: TCGGame; code?: string; totalCards?: number; cards: Card[] }): Promise<Set> {
     return this.request<Set>(`/sets/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),

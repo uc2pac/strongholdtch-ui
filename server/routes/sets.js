@@ -10,6 +10,8 @@ router.get('/', async (req, res) => {
         s.id, 
         s.name, 
         s.game, 
+        s.code,
+        s.total_cards,
         s.created_at, 
         s.updated_at,
         COUNT(c.id) as card_count
@@ -24,7 +26,7 @@ router.get('/', async (req, res) => {
       queryParams.push(game);
     }
     
-    query += ' GROUP BY s.id, s.name, s.game, s.created_at, s.updated_at ORDER BY s.created_at DESC';
+    query += ' GROUP BY s.id, s.name, s.game, s.code, s.total_cards, s.created_at, s.updated_at ORDER BY s.created_at DESC';
     
     const result = await req.db.query(query, queryParams);
     
@@ -73,7 +75,7 @@ router.post('/', async (req, res) => {
   try {
     await client.query('BEGIN');
     
-    const { name, game, cards } = req.body;
+    const { name, game, code, totalCards, cards } = req.body;
     
     // Validate required fields
     if (!name || !game || !cards || !Array.isArray(cards)) {
@@ -92,8 +94,8 @@ router.post('/', async (req, res) => {
     
     // Create the set
     const setResult = await client.query(
-      'INSERT INTO sets (name, game) VALUES ($1, $2) RETURNING *',
-      [name.trim(), game]
+      'INSERT INTO sets (name, game, code, total_cards) VALUES ($1, $2, $3, $4) RETURNING *',
+      [name.trim(), game, code?.trim() || null, totalCards || null]
     );
     
     const newSet = setResult.rows[0];
@@ -143,7 +145,7 @@ router.put('/:id', async (req, res) => {
     await client.query('BEGIN');
     
     const { id } = req.params;
-    const { name, game, cards } = req.body;
+    const { name, game, code, totalCards, cards } = req.body;
     
     // Check if set exists
     const setExists = await client.query('SELECT id FROM sets WHERE id = $1', [id]);
@@ -153,8 +155,8 @@ router.put('/:id', async (req, res) => {
     
     // Update set
     const setResult = await client.query(
-      'UPDATE sets SET name = $1, game = $2 WHERE id = $3 RETURNING *',
-      [name.trim(), game, id]
+      'UPDATE sets SET name = $1, game = $2, code = $3, total_cards = $4 WHERE id = $5 RETURNING *',
+      [name.trim(), game, code?.trim() || null, totalCards || null, id]
     );
     
     // Delete existing cards and insert new ones

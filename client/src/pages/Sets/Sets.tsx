@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import Modal from '../../components/Modal';
 import SearchInput from '../../components/SearchInput';
+import IconButton from '../../components/IconButton';
+import DropdownMenu, { DropdownMenuItem } from '../../components/DropdownMenu';
 import { apiService, Set, TCGGame } from '../../services/api';
 
 interface SetsProps {
@@ -48,6 +50,10 @@ const Sets: React.FC<SetsProps> = ({ game }) => {
         set.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const handleEditSet = (setId: string) => {
+        navigate(`/sets/edit/${setId}`);
+    };
+
     const getPageTitle = () => {
         if (game) {
             return `${tcgGames[game]} Sets`;
@@ -55,11 +61,24 @@ const Sets: React.FC<SetsProps> = ({ game }) => {
         return 'All Sets';
     };
 
-    const handleDeleteClick = (setId: string, setName: string) => {
-        setSetToDelete({ id: setId, name: setName });
+    const handleDeleteClick = (id: string, name: string) => {
+        setSetToDelete({ id, name });
         setShowDeleteModal(true);
     };
 
+    const getMenuItems = (set: Set): DropdownMenuItem[] => [
+        {
+            label: 'Edit',
+            onClick: () => handleEditSet(set.id),
+            className: 'text-gray-700'
+        },
+        {
+            label: 'Delete',
+            onClick: () => handleDeleteClick(set.id, set.name),
+            className: 'text-red-600'
+        }
+    ];    
+    
     const handleConfirmDelete = async () => {
         if (setToDelete) {
             try {
@@ -115,6 +134,7 @@ const Sets: React.FC<SetsProps> = ({ game }) => {
                     <table className="w-full">
                         <thead className="bg-gray-50 border-b border-gray-200">
                             <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Set Name</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Game</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Number of cards</th>
@@ -124,6 +144,9 @@ const Sets: React.FC<SetsProps> = ({ game }) => {
                         <tbody className="bg-white divide-y divide-gray-200">
                             {filteredSets.map((set) => (
                                 <tr key={set.id} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {set.code || '-'}
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <a 
                                             href={`/sets/${set.id}`} 
@@ -137,14 +160,21 @@ const Sets: React.FC<SetsProps> = ({ game }) => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         {set.card_count || set.cards?.length || 0}
+                                        {set.total_cards && ` / ${set.total_cards}`}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        <button 
-                                            onClick={() => handleDeleteClick(set.id, set.name)}
-                                            className="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-md transition-colors duration-200"
-                                        >
-                                            Delete
-                                        </button>
+                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium relative">
+                                        <DropdownMenu
+                                            trigger={
+                                                <IconButton
+                                                    icon="three-dots"
+                                                    size="md"
+                                                    onClick={() => {}} // Handled by DropdownMenu
+                                                />
+                                            }
+                                            items={getMenuItems(set)}
+                                            position="bottom-right"
+                                            menuClassName="w-40"
+                                        />
                                     </td>
                                 </tr>
                             ))}

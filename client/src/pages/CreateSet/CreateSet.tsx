@@ -1,13 +1,19 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from "react-router-dom";
-import { apiService, TCGGame, Card } from '../../services/api';
+import { useNavigate, useParams } from "react-router-dom";
+import { apiService, TCGGame, Card, Set } from '../../services/api';
 
 const CreateSet = () => {
     const [newSet, setNewSet] = React.useState<Card[]>([]);
     const [setName, setSetName] = React.useState<string>('');
+    const [setCode, setSetCode] = React.useState<string>('');
+    const [totalCards, setTotalCards] = React.useState<string>('');
     const [selectedGame, setSelectedGame] = React.useState<TCGGame>('pokemon');
     const [isLoading, setIsLoading] = React.useState<boolean>(false);
+    const [existingSet, setExistingSet] = React.useState<Set | null>(null);
     const navigate = useNavigate();
+    const { id: editId } = useParams();
+
+    const isEditMode = !!editId;
 
     const tcgGames: { value: TCGGame; label: string }[] = [
         { value: 'pokemon', label: 'Pokémon' },
@@ -17,10 +23,37 @@ const CreateSet = () => {
         { value: 'other', label: 'Other' },
     ];
 
+    // Load existing set data when editing
+    useEffect(() => {
+        if (isEditMode && editId) {
+            const loadSet = async () => {
+                setIsLoading(true);
+                try {
+                    const set = await apiService.getSet(editId);
+                    setExistingSet(set);
+                    setSetName(set.name);
+                    setSetCode(set.code || '');
+                    setTotalCards(set.total_cards?.toString() || '');
+                    setSelectedGame(set.game);
+                    setNewSet(set.cards);
+                } catch (error) {
+                    console.error('Error loading set:', error);
+                    alert(`Failed to load set: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                    navigate('/sets');
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            loadSet();
+        }
+    }, [isEditMode, editId, navigate]);
+
     return (
         <div className="p-8 min-h-screen bg-gray-50">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Create New Set</h1>
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                    {isEditMode ? 'Edit Set' : 'Create New Set'}
+                </h1>
                 <p className="text-gray-600">Enter your cards below, one per line in the format: Name - Number</p>
             </div>
 
@@ -59,11 +92,42 @@ const CreateSet = () => {
 
                 <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Set Code <span className="text-gray-500 text-sm">(optional)</span>
+                    </label>
+                    <input
+                        type="text"
+                        value={setCode}
+                        onChange={(e) => setSetCode(e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="e.g., PAL, 1, LOR001..."
+                    />
+                    <p className="text-sm text-gray-500 mt-1">
+                        Examples: Pokémon Paldea Evolved = "PAL", Lorcana First Chapter = "1"
+                    </p>
+                </div>
+
+                <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Total Cards <span className="text-gray-500 text-sm">(optional - leave empty to count automatically)</span>
+                    </label>
+                    <input
+                        type="number"
+                        value={totalCards}
+                        onChange={(e) => setTotalCards(e.target.value)}
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Total number of cards in the set..."
+                        min="0"
+                    />
+                </div>
+
+                <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                         Set Data
                     </label>
                     <textarea
                         className="w-full h-48 p-4 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="Enter your set data here...&#10;Example:&#10;Card Name 1 - 1&#10;Card Name 2 - 2&#10;Card Name 3 - 3"
+                        value={newSet.map(card => `${card.name} - ${card.number}`).join('\n')}
                         onChange={(e) => {
                             const input = e.target.value;
                             try {
@@ -95,15 +159,25 @@ const CreateSet = () => {
                             
                             setIsLoading(true);
                             try {
-                                const createdSet = await apiService.createSet({
+                                const setData = {
                                     name: setName.trim(),
                                     game: selectedGame,
+                                    code: setCode.trim() || undefined,
+                                    totalCards: totalCards ? parseInt(totalCards) : undefined,
                                     cards: newSet
-                                });
-                                navigate(`/sets/${createdSet.id}`);
+                                };
+
+                                let result;
+                                if (isEditMode && editId) {
+                                    result = await apiService.updateSet(editId, setData);
+                                } else {
+                                    result = await apiService.createSet(setData);
+                                }
+                                
+                                navigate(`/sets/${result.id}`);
                             } catch (error) {
-                                console.error('Error creating set:', error);
-                                alert(`Failed to create set: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                                console.error(`Error ${isEditMode ? 'updating' : 'creating'} set:`, error);
+                                alert(`Failed to ${isEditMode ? 'update' : 'create'} set: ${error instanceof Error ? error.message : 'Unknown error'}`);
                             } finally {
                                 setIsLoading(false);
                             }
@@ -111,7 +185,7 @@ const CreateSet = () => {
                         disabled={isLoading}
                         className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium px-6 py-2 rounded-lg transition-colors duration-200"
                     >
-                        {isLoading ? 'Creating...' : 'Create Set'}
+                        {isLoading ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Set' : 'Create Set')}
                     </button>
                     <button 
                         onClick={() => navigate('/sets')}
@@ -125,7 +199,10 @@ const CreateSet = () => {
                 {newSet.length > 0 && setName.trim() && (
                     <div className="mt-6 p-4 bg-gray-50 rounded-lg">
                         <h3 className="text-lg font-medium text-gray-900 mb-2">
-                            Preview: {setName} ({tcgGames.find(g => g.value === selectedGame)?.label}) - {newSet.length} cards
+                            Preview: {setName} 
+                            {setCode && ` (${setCode})`} 
+                            ({tcgGames.find(g => g.value === selectedGame)?.label}) - {newSet.length} cards
+                            {totalCards && ` / ${totalCards} total`}
                         </h3>
                         <div className="space-y-1 max-h-32 overflow-y-auto">
                             {newSet.map((card, index) => (

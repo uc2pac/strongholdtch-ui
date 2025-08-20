@@ -141,8 +141,13 @@ const SetDetails = () => {
         <div className="p-8 min-h-screen bg-gray-50">
             <div className="mb-8 flex justify-between items-center no-print">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">{set.name}</h1>
-                    <p className="text-gray-600 mt-1">{tcgGames[set.game]} • {set.cards.length} cards</p>
+                    <h1 className="text-3xl font-bold text-gray-900">
+                        {set.name} {set.code && <span className="text-gray-600">({set.code})</span>}
+                    </h1>
+                    <p className="text-gray-600 mt-1">
+                        {tcgGames[set.game]} • {set.cards.length} cards
+                        {set.total_cards && ` / ${set.total_cards} total`}
+                    </p>
                 </div>
                 <div className="flex gap-4">
                     <SearchInput
