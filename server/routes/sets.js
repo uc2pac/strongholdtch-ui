@@ -206,4 +206,46 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// DELETE /api/sets/:setId/cards/:cardId - Delete a specific card from a set
+router.delete('/:setId/cards/:cardId', async (req, res) => {
+  try {
+    const { setId, cardId } = req.params;
+    
+    // First, verify that the set exists
+    const setExists = await req.db.query(
+      'SELECT id FROM sets WHERE id = $1',
+      [setId]
+    );
+    
+    if (setExists.rows.length === 0) {
+      return res.status(404).json({ error: 'Set not found' });
+    }
+    
+    // Check if the card exists and belongs to this set
+    const cardExists = await req.db.query(
+      'SELECT * FROM cards WHERE id = $1 AND set_id = $2',
+      [cardId, setId]
+    );
+    
+    if (cardExists.rows.length === 0) {
+      return res.status(404).json({ error: 'Card not found in this set' });
+    }
+    
+    // Delete the card
+    const result = await req.db.query(
+      'DELETE FROM cards WHERE id = $1 AND set_id = $2 RETURNING *',
+      [cardId, setId]
+    );
+    
+    res.json({ 
+      message: 'Card deleted successfully', 
+      deletedCard: result.rows[0] 
+    });
+    
+  } catch (error) {
+    console.error('Error deleting card:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 module.exports = router;

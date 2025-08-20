@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import Modal from '../../components/Modal';
+import SearchInput from '../../components/SearchInput';
 import { apiService, Set, TCGGame } from '../../services/api';
 
 interface SetsProps {
@@ -9,6 +10,7 @@ interface SetsProps {
 
 const Sets: React.FC<SetsProps> = ({ game }) => {
     const [sets, setSets] = React.useState<Set[]>([]);
+    const [searchTerm, setSearchTerm] = React.useState('');
     const [showDeleteModal, setShowDeleteModal] = React.useState(false);
     const [setToDelete, setSetToDelete] = React.useState<{ id: string; name: string } | null>(null);
     const [isLoading, setIsLoading] = React.useState(true);
@@ -41,8 +43,10 @@ const Sets: React.FC<SetsProps> = ({ game }) => {
         loadSets();
     }, [game]);
 
-    // Filter sets by game if specified (now handled by API)
-    const filteredSets = sets;
+    // Filter sets by game if specified (now handled by API) and by search term
+    const filteredSets = sets.filter(set => 
+        set.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     const getPageTitle = () => {
         if (game) {
@@ -81,12 +85,19 @@ const Sets: React.FC<SetsProps> = ({ game }) => {
         <div className="p-8 min-h-screen bg-gray-50">
             <div className="mb-8 flex justify-between items-center">
                 <h1 className="text-3xl font-bold text-gray-900">{getPageTitle()}</h1>
-                <button 
-                    onClick={() => navigate('/sets/create')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition-colors duration-200"
-                >
-                    Create New Set
-                </button>
+                <div className="flex items-center gap-4">
+                    <SearchInput
+                        value={searchTerm}
+                        onChange={setSearchTerm}
+                        placeholder="Search sets..."
+                    />
+                    <button 
+                        onClick={() => navigate('/sets/create')}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition-colors duration-200"
+                    >
+                        Create New Set
+                    </button>
+                </div>
             </div>
 
             {error && (
@@ -143,14 +154,28 @@ const Sets: React.FC<SetsProps> = ({ game }) => {
                     {filteredSets.length === 0 && (
                         <div className="text-center py-12">
                             <div className="text-gray-500 text-lg">
-                                {game ? `No ${tcgGames[game]} sets found.` : 'No sets found.'}
+                                {searchTerm ? (
+                                    <>
+                                        No sets found matching "{searchTerm}".
+                                        <button 
+                                            onClick={() => setSearchTerm('')}
+                                            className="ml-2 text-blue-600 hover:text-blue-800 font-medium"
+                                        >
+                                            Clear search
+                                        </button>
+                                    </>
+                                ) : (
+                                    game ? `No ${tcgGames[game]} sets found.` : 'No sets found.'
+                                )}
                             </div>
-                            <button 
-                                onClick={() => navigate('/sets/create')}
-                                className="mt-4 text-blue-600 hover:text-blue-800 font-medium"
-                            >
-                                Create your first set
-                            </button>
+                            {!searchTerm && (
+                                <button 
+                                    onClick={() => navigate('/sets/create')}
+                                    className="mt-4 text-blue-600 hover:text-blue-800 font-medium"
+                                >
+                                    Create your first set
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>

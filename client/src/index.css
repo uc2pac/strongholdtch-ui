@@ -40,3 +40,31 @@ body {
   line-height: 1.5;
   font-weight: 400;
 }
+
+/* 3D Card Flip Styles */
+.transform-style-preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+/* Print-specific overrides for card flip */
+@media print {
+  .transform-style-preserve-3d {
+    transform-style: flat !important;
+  }
+  
+  .backface-hidden {
+    backface-visibility: visible !important;
+  }
+  
+  .rotate-y-180 {
+    transform: none !important;
+  }
+}

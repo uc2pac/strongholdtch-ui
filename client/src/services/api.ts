@@ -77,6 +77,13 @@ class ApiService {
     });
   }
 
+  // Cards API
+  async deleteCard(setId: string, cardId: string): Promise<{ message: string }> {
+    return this.request<{ message: string }>(`/sets/${setId}/cards/${cardId}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Health check
   async healthCheck(): Promise<{ status: string; timestamp: string; database: string }> {
     return this.request<{ status: string; timestamp: string; database: string }>('/health');
